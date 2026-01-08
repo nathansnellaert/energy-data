@@ -52,6 +52,7 @@ def fetch_and_save_table(name: str, table_path: str):
     """Fetch table data, chunking by year if needed, and save each chunk."""
     url = f"{BASE_URL}/{table_path}"
     metadata = get_table_metadata(table_path)
+    time.sleep(1.1)  # Rate limit after metadata request
     total_cells = calculate_total_cells(metadata)
 
     if total_cells <= MAX_CELLS:
@@ -61,6 +62,7 @@ def fetch_and_save_table(name: str, table_path: str):
         response.raise_for_status()
         data = response.json()
         save_raw_json(data, name, compress=True)
+        time.sleep(1.1)  # Rate limit after data request
         return len(data.get("value", []))
 
     # Find the time/year variable to split on
