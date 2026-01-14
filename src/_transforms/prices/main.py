@@ -3,7 +3,7 @@
 import pyarrow as pa
 import pyarrow.csv as csv
 import pyarrow.compute as pc
-from subsets_utils import load_raw_json, upload_data, publish
+from subsets_utils import load_raw_json, sync_data, sync_metadata
 from .test import test
 
 DATASETS = {
@@ -65,12 +65,11 @@ def run():
 
         test(table, cfg["date_col"])
 
-        upload_data(table, dataset_id)
+        sync_data(table, dataset_id)
 
         col_desc = {k: v for k, v in COLUMN_DESCRIPTIONS.items() if k in table.column_names}
 
-        publish(dataset_id, {
-            "id": dataset_id,
+        sync_metadata(dataset_id, {
             "title": cfg["title"],
             "description": cfg["description"],
             "column_descriptions": col_desc,

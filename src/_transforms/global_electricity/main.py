@@ -1,38 +1,44 @@
-"""Transform Ember India electricity data (yearly and monthly)."""
+"""Transform Ember global electricity data (yearly, monthly, Europe monthly)."""
 
 import pyarrow as pa
 import pyarrow.csv as csv
 import pyarrow.compute as pc
-from subsets_utils import load_raw_json, upload_data, publish
+from subsets_utils import load_raw_json, sync_data, sync_metadata
 from .test import test
 
 DATASETS = {
-    "ember_electricity_india_yearly": {
-        "raw_key": "ember_electricity_india_yearly",
+    "ember_electricity_yearly": {
+        "raw_key": "ember_electricity_yearly",
         "date_col": "year",
         "date_source": "Year",
-        "title": "Ember India Electricity (Yearly)",
-        "description": "Yearly electricity generation, capacity, and emissions for 36 Indian states and union territories. Frequency is always yearly.",
+        "title": "Ember Global Electricity (Yearly)",
+        "description": "Yearly electricity generation, capacity, emissions and demand for 200+ countries. Frequency is always yearly.",
     },
-    "ember_electricity_india_monthly": {
-        "raw_key": "ember_electricity_india_monthly",
+    "ember_electricity_monthly": {
+        "raw_key": "ember_electricity_monthly",
         "date_col": "month",
         "date_source": "Date",
-        "title": "Ember India Electricity (Monthly)",
-        "description": "Monthly electricity generation, capacity, and emissions for 36 Indian states and union territories. Frequency is always monthly.",
+        "title": "Ember Global Electricity (Monthly)",
+        "description": "Monthly electricity generation, emissions and demand for 88 countries representing 90%+ of global power demand. Frequency is always monthly.",
+    },
+    "ember_electricity_europe_monthly": {
+        "raw_key": "ember_electricity_europe_monthly",
+        "date_col": "month",
+        "date_source": "Date",
+        "title": "Ember Europe Electricity (Monthly)",
+        "description": "Monthly electricity generation, emissions and demand for European countries. Frequency is always monthly.",
     },
 }
 
 COLUMN_DESCRIPTIONS = {
-    "country_name": "Country name (always India)",
-    "country_code": "ISO 3-letter country code (always IND)",
-    "state": "Indian state or union territory name",
-    "state_code": "Two-letter state code",
-    "state_type": "Type of administrative division (State or Union territory)",
-    "category": "Data category (Capacity, Electricity generation, Power sector emissions)",
-    "subcategory": "Subcategory (Aggregate fuel, Fuel, etc.)",
+    "country_name": "Country or area name",
+    "country_code": "ISO 3-letter country code",
+    "area_type": "Type of area (Country or economy, Region, etc.)",
+    "continent": "Continent name",
+    "category": "Data category (Electricity demand, Electricity generation, Capacity, etc.)",
+    "subcategory": "Subcategory (Demand, Aggregate fuel, Fuel, etc.)",
     "variable": "Specific variable being measured",
-    "unit": "Unit of measurement (MW, GWh, MtCO2, etc.)",
+    "unit": "Unit of measurement (TWh, %, GW, etc.)",
     "value": "Measured value",
     "yoy_change": "Year-over-year absolute change",
     "yoy_change_pct": "Year-over-year percentage change",
@@ -49,16 +55,15 @@ def transform(csv_text: str, date_source: str, date_col: str) -> pa.Table:
         # Cast year int to string
         date_values = pc.cast(date_values, pa.string())
     elif date_source == "Date":
-        # Convert date to string YYYY-MM
+        # Convert date to string YYYY-MM-DD then slice to YYYY-MM
         date_values = pc.strftime(date_values, format="%Y-%m")
 
     columns = {
         date_col: date_values,
-        "country_name": table.column("Country"),
-        "country_code": table.column("Country code"),
-        "state": table.column("State"),
-        "state_code": table.column("State code"),
-        "state_type": table.column("State type"),
+        "country_name": table.column("Area"),
+        "country_code": table.column("ISO 3 code"),
+        "area_type": table.column("Area type"),
+        "continent": table.column("Continent"),
         "category": table.column("Category"),
         "subcategory": table.column("Subcategory"),
         "variable": table.column("Variable"),
@@ -72,7 +77,7 @@ def transform(csv_text: str, date_source: str, date_col: str) -> pa.Table:
 
 
 def run():
-    """Transform Ember India electricity datasets."""
+    """Transform Ember global electricity datasets."""
     raw_data = load_raw_json("ember_data")
 
     for dataset_id, cfg in DATASETS.items():
@@ -83,13 +88,12 @@ def run():
 
         test(table, cfg["date_col"])
 
-        upload_data(table, dataset_id)
+        sync_data(table, dataset_id)
 
         col_desc = {cfg["date_col"]: f"{cfg['date_col'].title()} of observation"}
         col_desc.update({k: v for k, v in COLUMN_DESCRIPTIONS.items() if k != cfg["date_col"]})
 
-        publish(dataset_id, {
-            "id": dataset_id,
+        sync_metadata(dataset_id, {
             "title": cfg["title"],
             "description": cfg["description"],
             "column_descriptions": col_desc,
