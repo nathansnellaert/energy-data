@@ -143,7 +143,7 @@ def transform_global_electricity():
 
         test_ember(output_table, cfg["date_col"])
 
-        merge(output_table, dataset_id, key=[cfg["date_col"], "country_code", "category", "subcategory", "variable", "unit"])
+        merge(output_table, dataset_id, key=[cfg["date_col"], "country_name", "category", "subcategory", "variable", "unit"])
 
         col_desc = {cfg["date_col"]: f"{cfg['date_col'].title()} of observation"}
         col_desc.update({k: v for k, v in GLOBAL_COLUMN_DESCRIPTIONS.items() if k != cfg["date_col"]})
@@ -294,6 +294,10 @@ def transform_european_prices():
         }
 
         output_table = pa.table(columns)
+
+        output_table = output_table.group_by([cfg["date_col"], "country_name", "country_code"]).aggregate([
+            ("price_eur_mwh", "mean"),
+        ]).rename_columns([cfg["date_col"], "country_name", "country_code", "price_eur_mwh"])
 
         print(f"  {dataset_id}: {output_table.num_rows:,} rows")
 
