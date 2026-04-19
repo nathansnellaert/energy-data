@@ -1,8 +1,4 @@
-"""Energy Data connector - dynamically discovers and runs all nodes."""
-import os
-
-os.environ['RUN_ID'] = os.getenv('RUN_ID', 'local-run')
-
+"""Energy Data - Ember electricity generation, capacity, emissions and prices."""
 from subsets_utils import load_nodes, validate_environment
 
 
