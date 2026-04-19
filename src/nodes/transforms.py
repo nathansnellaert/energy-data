@@ -152,6 +152,7 @@ def transform_global_electricity():
             "id": dataset_id,
             "title": cfg["title"],
             "description": cfg["description"],
+            "license": "CC-BY-4.0",
             "column_descriptions": col_desc,
         })
 
@@ -238,6 +239,7 @@ def transform_india_electricity():
             "id": dataset_id,
             "title": cfg["title"],
             "description": cfg["description"],
+            "license": "CC-BY-4.0",
             "column_descriptions": col_desc,
         })
 
@@ -305,6 +307,7 @@ def transform_european_prices():
             "id": dataset_id,
             "title": cfg["title"],
             "description": cfg["description"],
+            "license": "CC-BY-4.0",
             "column_descriptions": col_desc,
         })
 
