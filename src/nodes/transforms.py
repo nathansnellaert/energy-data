@@ -143,7 +143,7 @@ def transform_global_electricity():
 
         test_ember(output_table, cfg["date_col"])
 
-        merge(output_table, dataset_id, key=[cfg["date_col"], "country_code", "category", "variable"])
+        merge(output_table, dataset_id, key=[cfg["date_col"], "country_code", "category", "subcategory", "variable", "unit"])
 
         col_desc = {cfg["date_col"]: f"{cfg['date_col'].title()} of observation"}
         col_desc.update({k: v for k, v in GLOBAL_COLUMN_DESCRIPTIONS.items() if k != cfg["date_col"]})
@@ -230,7 +230,7 @@ def transform_india_electricity():
 
         test_india(output_table, cfg["date_col"])
 
-        merge(output_table, dataset_id, key=[cfg["date_col"], "state_code", "category", "variable"])
+        merge(output_table, dataset_id, key=[cfg["date_col"], "state_code", "category", "subcategory", "variable", "unit"])
 
         col_desc = {cfg["date_col"]: f"{cfg['date_col'].title()} of observation"}
         col_desc.update({k: v for k, v in INDIA_COLUMN_DESCRIPTIONS.items() if k != cfg["date_col"]})
